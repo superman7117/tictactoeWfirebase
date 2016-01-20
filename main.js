@@ -3,14 +3,15 @@
 var ref = new Firebase('https://ozanneredbutton.firebaseio.com/');
 var playerNumRef = ref.child('playerNum');
 var playerTurnRef = ref.child('playerTurn')
-var iconsRef = ref.child('icons')
+var winRef = ref.child('win')
 var playerNumLocal;
 var win = false;
+var gameState = true;
 var selectedSquares = [];
 $(document).ready(init);
 
 function init(){
-goHoe()
+  goHoe()
 
 }
 
@@ -41,141 +42,144 @@ function goLocal(playerNum){
 
 ref.on('value', function(snapshot){
   var data = snapshot.val()
-  console.log(playerNumLocal, 'data');
+  console.log(data.win, 'data');
+  if(data){
+    if(data.win === "CAT" ){
+      $('.mydiv').append('<div class="win"><div><div class="cat"></div> is the Winner!!!</div><button type="button" class="btn btn-success">Play Again!!</button>');
+      $('.btn').on('click', replay);
+    }
+    else if (data.win === "Player 1"){
+      $('.mydiv').append('<div class="win"><div>'+data.win+' is the Winner!!!</div><button type="button" class="btn btn-success">Play Again!!</button>');
+      $('.btn').on('click', replay);
+    }
+    else if (data.win === "Player 2"){
+      $('.mydiv').append('<div class="win"><div>'+data.win+' is the Winner!!!</div><button type="button" class="btn btn-success">Play Again!!</button>');
+      $('.btn').on('click', replay);
+    }
+  }
   if(data.playerNum === 2 && data.playerTurn === true &&
-     playerNumLocal === 1 || data.playerNum === 2 &&
-     data.playerTurn === false && playerNumLocal === 2 ){
-       $('div').addClass('turn').text("Your Turn").appendTo('.row')
-       $('.container').on('click', '.box', addIconLocal)
-     }
-  else {$('.turn').remove()}
-})
-
-function addIconLocal(){
-  var squareClicked = $(this).data('num');
-  console.log(squareClicked, "sq");
-  if (squareClicked.attr('data-icon') !== 'true'){
-    if (firstPlayer === 'true'){
-      x.attr('data-icon', true).attr('data-who', 'first').children().text('X');
-      ref.update({
-        squareClicked: squareClicked,
-        playerTurn: false
+    playerNumLocal === 1){
+      // clickable()
+      $('<div>').addClass('yourTrun').prepend('Your Turn!!').appendTo('.mydiv');
+      addIconNonLocal(data.squareClicked)
+      $('.container').on('click', '.box', addIconLocalTrue)
+      // unclickable()
+    }
+    else if (data.playerNum === 2 &&
+      data.playerTurn === false && playerNumLocal === 2 ){
+        // clickable()
+        $('<div>').addClass('yourTrun').prepend('Your Turn!!').appendTo('.mydiv');
+        addIconNonLocal(data.squareClicked)
+        $('.container').on('click', '.box', addIconLocalFalse);
+        // unclickable()
+      }
+      else {
+        $('.yourTrun').remove();
+      return;}
       })
-    }
-    else if (firstPlayer === 'false'){
-      x.attr('data-icon', true).attr('data-who', 'second').children().text('O');
-      $('.lo :nth-child(2)').css('color', '#333').next().remove();
-      $('.lo :nth-child(1)').css('color', 'yellow');
-      firstPlayer = 'true';
-    }
-  }
-  winning($(this));
-}
 
+      function clickable(){
+        gameState = true;
+      }
 
-function winning(newThis){
+      function unclickable(){
+        gameState = false;
+      }
 
-  for (var i = 0; i < selectedSquares.length; i++) {
-    for (var j = i + 1; j < selectedSquares.length; j++) {
-        for (var k = j + 1; k < selectedSquares.length; k++) {
-            if (selectedSquares[i] + selectedSquares[j] + selectedSquares[k] == 15) {
-              win = true;
-              $('.btn').on('click', replay);
-            }
+      function addIconNonLocal(x){
+        console.log('x', x);
+        $('.container').find('[data-num="'+x+'"]').attr('data-icon', true).text('O');
+      }
+
+      function addIconLocalTrue(){
+        if (gameState === false){
+          return;
         }
-    }
+        var squareClicked = $(this).data('num');
+        selectedSquares.push(squareClicked);
+        console.log(squareClicked, "sq");
+        if ($(this).attr('data-icon') !== 'true'){
+          $(this).attr('data-icon', true).text('X');
+          ref.update({
+            squareClicked: squareClicked,
+            playerTurn: false
+          })
+        }
+        else {return;}
+        winningPlayer1();
+      }
 
+      function addIconLocalFalse(){
+        if (gameState === false){
+          return;
+        }
+        var squareClicked = $(this).data('num');
+        selectedSquares.push(squareClicked);
+        console.log(squareClicked, "sq");
+        if ($(this).attr('data-icon') !== 'true'){
+          $(this).attr('data-icon', true).text('X');
+          ref.update({
+            squareClicked: squareClicked,
+            playerTurn: true
+          })
+        }
+        else {return;}
+        winningPlayer2();
+      }
 
-  }
-  else if($(".container").find('[data-icon="true"]').length === 9){
-    $('.mydiv').append('<div class="win"><div><div class="cat"></div> is the Winner!!!</div><button type="button" class="btn btn-success">Play Again!!</button>');
-    win = true;
-    $('.btn').on('click', replay);
+      function winningPlayer1(){
+        for (var i = 0; i < selectedSquares.length; i++) {
+          for (var j = i + 1; j < selectedSquares.length; j++) {
+            for (var k = j + 1; k < selectedSquares.length; k++) {
+              if (selectedSquares[i] + selectedSquares[j] + selectedSquares[k] == 15) {
+                ref.update({
+                  win: 'Player 1',
+                })
+                $('.mydiv').append('<div class="win"><div><div class="cat"></div> is the Winner!!!</div><button type="button" class="btn btn-success">Play Again!!</button>');
+                $('.btn').on('click', replay);
+              }
+              else if($(".container").find('[data-icon="true"]').length === 9){
+                $('.mydiv').append('<div class="win"><div><div class="cat"></div> is the Winner!!!</div><button type="button" class="btn btn-success">Play Again!!</button>');
+                ref.update({
+                  win: "CAT",
+                })
+                $('.btn').on('click', replay);
+              }
+            }
+          }
+        }
+      }
 
-  }
-}
+      function winningPlayer2(){
+        for (var i = 0; i < selectedSquares.length; i++) {
+          for (var j = i + 1; j < selectedSquares.length; j++) {
+            for (var k = j + 1; k < selectedSquares.length; k++) {
+              if (selectedSquares[i] + selectedSquares[j] + selectedSquares[k] == 15) {
+                ref.update({
+                  win: 'Player 2',
+                })
+              }
+              else if($(".container").find('[data-icon="true"]').length === 9){
+                $('.mydiv').append('<div class="win"><div><div class="cat"></div> is the Winner!!!</div><button type="button" class="btn btn-success">Play Again!!</button>');
+                ref.update({
+                  win: "CAT",
+                })
+              }
+            }
+          }
+        }
+      }
 
-function replay(){
-  newBucket = $.merge([], bucket);
-  firstPlayer = 'true';
-  icons = [];
-  win = false;
-  $('.mydiv').parent().nextAll().remove();
-  $('.btn').remove();
-  $('.win').remove();
-  init();
-}
+      function replay(){
+        selectedSquares = [];
+        ref.set({
+          playerNum: 2,
+          playerTurn: true,
+          squareClicked: '',
+          win: ''
+        })
+        $('.box').removeAttr('data-icon').empty();
+        $('.btn').remove();
+        $('.win').remove();
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// 'use strict';
-//
-// var ref = new Firebase('https://ozanneredbutton.firebaseio.com/');
-// var readyToPlay= false;
-// var playerTurn= 0;
-// $(document).ready(function(){
-// var playerNum = 1;
-//
-//   ref.set({
-//     playerNum: '',
-//     playerTurn: '',
-//     readyToPlay: ''
-//   })
-//   ref.on('child_added', function(snapshot){
-//     var message = snapshot.val()
-//     console.log(message);
-//     readyToPlay = true;
-//     playerNum = parseInt(message.playerNum) + 1;
-//     if (message.playerNum > 2){
-//       $('div').text('Already two players').appendTo('body');
-//       return;
-//     }
-//     else if(message.playerNum ===2){
-//       readyToPlay = true
-//       $('#turntracker').append("You are Player #" + playerNum+". It is Player "+playerTurn+"'s turn!");
-//       ref.update({
-//         playerNum: playerNum,
-//         playerTurn: 1,
-//         readyToPlay: readyToPlay
-//       })
-//     }
-//     else {
-//       readyToPlay = false;
-//       $('#turntracker').append("You are Player #" + playerNum+". It is Player "+playerTurn+"'s turn!");
-//
-//       ref.update({
-//         playerNum: playerNum,
-//         playerTurn: 1,
-//         readyToPlay: readyToPlay
-//       })
-//     }
-//
-//   })
-// $('.magic').on('click' myclick)
-// var playerNum = 0
-// function myclick(){
-//   if()
-//
-//
-// }
-//
-
-
-
-
-
-
-// })
+      }

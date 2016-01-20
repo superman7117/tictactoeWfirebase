@@ -10,7 +10,6 @@ body{
   flex-direction: row;
   width: 90vw;
 }
-
 .win {
   display: flex;
   justify-content: center;
@@ -19,7 +18,7 @@ body{
   text-align: center;
 }
 
-.a, .lo {
+.a {
   display: flex;
   text-align: center;
   align-items: center;
@@ -35,14 +34,6 @@ body{
   justify-content: center;
 }
 
-.lo {
-  flex-direction: row;
-  background-color: red;
-  border-bottom-left-radius: 100%;
-  border-bottom-right-radius: 100%;
-  justify-content: space-between;
-
-}
 .box {
   background-color: orange;
   border: 1px solid red;
@@ -51,8 +42,8 @@ body{
   justify-content: center;
   align-items: center;
   border: 1px solid red;
-  height: 20vw;
-  width: 20vw;
+  height: 15vw;
+  width: 29vw;
 }
 span {
   height: 50%;
@@ -61,14 +52,14 @@ span {
   justify-content: center;
   align-content: center;
 }
-[data-showing*=match]{
-  background-color: red;
-}
-[data-showing*=true]{
-  background-color: dodgerblue;
-}
+
 .cat {
   height: 28vw;
   background-image: url(http://welovecatsandkittens.com/wp-content/uploads/2014/02/boxing.gif);
   background-size: cover;
+}
+.wrap {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
 }
