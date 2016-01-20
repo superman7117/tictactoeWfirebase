@@ -2,7 +2,9 @@
 
 var ref = new Firebase('https://ozanneredbutton.firebaseio.com/');
 var playerNumRef = ref.child('playerNum');
-var playerTurnRef = ref.child('playerTurn')
+var playerTurnRef = ref.child('playerTurn');
+var connectedRef = new Firebase('https://ozanneredbutton.firebaseio.com/.info/connected');
+
 var winRef = ref.child('win')
 var playerNumLocal;
 var win = false;
@@ -183,3 +185,4 @@ ref.on('value', function(snapshot){
         $('.win').remove();
 
       }
+      connectedRef
