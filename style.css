@@ -1,5 +1,6 @@
 body{
   background: dodgerblue;
+  display: flex;
 }
 
 .container {
@@ -7,6 +8,7 @@ body{
   diaplay: flex;
   flex-wrap: wrap;
   flex-direction: row;
+  width: 90vw;
 }
 
 .win {

@@ -4,17 +4,12 @@ var ref = new Firebase('https://ozanneredbutton.firebaseio.com/');
 var playerNumRef = ref.child('playerNum');
 var playerTurnRef = ref.child('playerTurn')
 var iconsRef = ref.child('icons')
-var playerNum;
+var playerNumLocal;
 var win = false;
-var firstPlayer = 'true';
-var icons = [];
+var selectedSquares = [];
 $(document).ready(init);
 
 function init(){
-  $('.container').append('<div class="row lo"><span class="glyphicon '+ icons[0]+' aria-hidden="true"></span> V. <span class="glyphicon '+ icons[1] +' aria-hidden="true"></span></div>');
-  $('.container').append(boardBinder);
-  $('.col-xs-4').on('click', markSquare);
-  $('.lo :nth-child(1)').css('color', 'yellow');
 goHoe()
 
 }
@@ -24,12 +19,12 @@ function goHoe(){
     var data = snapshot.val();
     console.log(data);
     if(!data || data === 1){
-      playerNum = data + 1;
+      var playerNum = data + 1;
+      goLocal(playerNum)
+
       console.log(playerNum, "playerNum");
       $('<div>').prepend('You are player '+playerNum).appendTo('.mydiv');
-      bucketPicker();
       ref.update({
-        icons: icons,
         playerNum: playerNum,
         playerTurn: true
       })
@@ -40,93 +35,57 @@ function goHoe(){
     }
   })
 }
-
-console.log(playerNum)
-function boardBinder(){
-  var boardSize = 9;
-  var boardArray = [];
-  var rowArray = [];
-  var addingUp = 0;
-  for (var i = 0; i < boardSize; i++){
-    addingUp++
-    rowArray.push('<div class="col-xs-4 c'+addingUp+'"><span class="glyphicon" aria-hidden="true"></span></div>');
-  }
-  var num = 0;
-  for (var n = 0; n < boardSize; n++){
-    num++
-    boardArray.push('<div class="row r'+num+'">'+rowArray.join('')+'</div>');
-  }
-  return boardArray.join('');
+function goLocal(playerNum){
+  playerNumLocal = playerNum;
 }
 
-
-function markSquare(){
-
-
-  if ($(this).attr('data-icon') !== 'true' && win !== true){
-    addIcon($(this));
-    var $dataWho = $(this).attr('data-who')
-    console.log($(this).attr('data-who'));
-    console.log($('.r1').children().attr('data-icon').length)
-    winning($(this));
-  }
-}
-else {
-  return;}
+ref.on('value', function(snapshot){
+  var data = snapshot.val()
+  console.log(playerNumLocal, 'data');
+  if(data.playerNum === 2 && data.playerTurn === true &&
+     playerNumLocal === 1 || data.playerNum === 2 &&
+     data.playerTurn === false && playerNumLocal === 2 ){
+       $('div').addClass('turn').text("Your Turn").appendTo('.row')
+       $('.container').on('click', '.box', addIconLocal)
+     }
+  else {$('.turn').remove()}
 })
-}
 
-function addIcon(x){
-  if (x.attr('data-icon') !== 'true'){
+function addIconLocal(){
+  var squareClicked = $(this).data('num');
+  console.log(squareClicked, "sq");
+  if (squareClicked.attr('data-icon') !== 'true'){
     if (firstPlayer === 'true'){
-      x.attr('data-icon', true).attr('data-who', 'first').children().addClass(icons[0]);
-      $('.lo :nth-child(1)').css('color', '#333');
-      $('.lo :nth-child(2)').css('color', 'yellow');
-      firstPlayer = 'false';
+      x.attr('data-icon', true).attr('data-who', 'first').children().text('X');
+      ref.update({
+        squareClicked: squareClicked,
+        playerTurn: false
+      })
     }
     else if (firstPlayer === 'false'){
-      x.attr('data-icon', true).attr('data-who', 'second').children().addClass(icons[1]);
+      x.attr('data-icon', true).attr('data-who', 'second').children().text('O');
       $('.lo :nth-child(2)').css('color', '#333').next().remove();
       $('.lo :nth-child(1)').css('color', 'yellow');
       firstPlayer = 'true';
     }
   }
+  winning($(this));
 }
 
-var bucket = ['glyphicon-plus','glyphicon-pencil','glyphicon-cloud','glyphicon-envelope',
-'glyphicon-glass', 'glyphicon-music', 'glyphicon-search', 'glyphicon-heart', 'glyphicon-star-empty',
-'glyphicon-user', 'glyphicon-film','glyphicon-th-list', 'glyphicon-ok', 'glyphicon-off',
-'glyphicon-signal', 'glyphicon-home', 'glyphicon-road', 'glyphicon-qrcode'];
-var newBucket = $.merge([], bucket);
-
-function bucketPicker(){
-  for (var i = 0; i < 2; i++){
-    var num = Math.floor(Math.random()*newBucket.length);
-    icons.push(newBucket[num]);
-    newBucket.splice(num,1);
-  }
-}
 
 function winning(newThis){
-  if($('.r1>[data-who="first"]').length === 3 ||
-  ($('.r1>[data-who="second"]').length === 3)||
-  ($('.r2>[data-who="first"]').length === 3)||
-  ($('.r2>[data-who="second"]').length === 3) ||
-  ($('.r3>[data-who="first"]').length === 3)||
-  ($('.r3>[data-who="second"]').length === 3)||
-  ($('.c1[data-who="first"]').length === 3)||
-  ($('.c1[data-who="second"]').length === 3) ||
-  ($('.c2[data-who="first"]').length === 3) ||
-  ($('.c2[data-who="second"]').length === 3)||
-  ($('.c3[data-who="first"]').length === 3)||
-  ($('.c3[data-who="second"]').length === 3) ||
-  ($('.r1>.c1[data-who="first"], .r2>.c2[data-who="first"], .r3>.c3[data-who="first"]').length === 3)||
-  ($('.r1>.c1[data-who="second"], .r2>.c2[data-who="second"], .r3>.c3[data-who="second"]').length === 3)||
-  ($('.r1>.c3[data-who="first"], .r2>.c2[data-who="first"], .r3>.c1[data-who="first"]').length === 3)||
-  ($('.r1>.c3[data-who="second"], .r2>.c2[data-who="second"], .r3>.c1[data-who="second"]').length === 3)){
-    $('.mydiv').append('<div class="win"><div><span class="'+ $(newThis).children().attr("class")+'" aria-hidden="true"></span>is the Winner!!!</div><button type="button" class="btn btn-success">Play Again!!</button>');
-    win = true;
-    $('.btn').on('click', replay);
+
+  for (var i = 0; i < selectedSquares.length; i++) {
+    for (var j = i + 1; j < selectedSquares.length; j++) {
+        for (var k = j + 1; k < selectedSquares.length; k++) {
+            if (selectedSquares[i] + selectedSquares[j] + selectedSquares[k] == 15) {
+              win = true;
+              $('.btn').on('click', replay);
+            }
+        }
+    }
+
+
   }
   else if($(".container").find('[data-icon="true"]').length === 9){
     $('.mydiv').append('<div class="win"><div><div class="cat"></div> is the Winner!!!</div><button type="button" class="btn btn-success">Play Again!!</button>');
