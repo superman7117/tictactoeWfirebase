@@ -185,4 +185,4 @@ ref.on('value', function(snapshot){
         $('.win').remove();
 
       }
-      connectedRef
+      
